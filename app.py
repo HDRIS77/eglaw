@@ -4,16 +4,17 @@ from groq import Groq
 from PIL import Image
 
 # 1. إعدادات المنصة (هيبة محامي الشيطان)
-st.set_page_config(page_title="محامي الشيطان Pro - الدفاع الجبار", layout="wide")
+st.set_page_config(page_title="منصة محامي الشيطان Pro - إصدار المستشارين", layout="wide")
 st.markdown("""
     <style>
     .stApp { background-color: #0b0e14; color: #ffffff; }
     .stTextArea textarea, .stTextInput input { background-color: #161b22; color: #ff4b4b; border: 1px solid #30363d; font-size: 17px; }
     .stButton>button { width: 100%; background: linear-gradient(90deg, #8b0000 0%, #000000 100%); color: white; border-radius: 10px; height: 55px; font-weight: bold; border: 1px solid #ff0000; }
-    .stButton>button:hover { box-shadow: 0px 0px 20px #ff0000; }
+    .stButton>button:hover { box-shadow: 0px 0px 20px #ff0000; cursor: pointer; }
     h1, h2, h3 { color: #ff0000 !important; text-align: right; }
     .charge-box { background-color: #260101; padding: 20px; border-radius: 10px; border: 1px solid #ff0000; margin-top: 10px; }
     .witness-box { background-color: #1e252e; padding: 15px; border-radius: 10px; border-right: 5px solid #ff0000; margin-bottom: 10px; }
+    .pro-tips { background-color: #002244; padding: 20px; border-radius: 10px; border-right: 5px solid #00aaff; margin-top: 20px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -30,77 +31,71 @@ def load_law():
 
 LAW_BASE = load_law()
 
-st.title("😈 منصة محامي الشيطان - الدفاع الانتحاري")
+st.title("😈 منصة محامي الشيطان - إصدار المستشار القانوني")
 
-tab1, tab2, tab3 = st.tabs(["🔍 تحليل المحضر والتهمة", "👥 الشهود والأدلة", "🔥 مذكرة الدفاع الجبارة"])
+tab1, tab2, tab3 = st.tabs(["🔍 تحليل التهمة والمصير", "👥 بنك الشهود والأدلة", "🔥 مذكرة الدفاع وتوصيات الجلسة"])
 
 with tab1:
     col_in, col_out = st.columns([1, 1])
     with col_in:
-        st.subheader("📁 رفع وتجهيز المحضر")
-        file = st.file_uploader("ارفع المحضر هنا", type=["jpg", "png", "jpeg"])
-        mahdar_input = st.text_area("انسخ نص المحضر هنا (ضروري للتحليل):", height=300)
+        st.subheader("📁 فحص المحضر")
+        file = st.file_uploader("ارفع المحضر", type=["jpg", "png", "jpeg"])
+        mahdar_input = st.text_area("نص المحضر (المادة الخام للثغرات):", height=300)
         
-        if st.button("⚖️ تكييف التهمة والعقوبة"):
+        if st.button("⚖️ تحليل التهمة والعقوبة المتوقعة"):
             if mahdar_input:
-                with st.spinner("محامي الشيطان يحدد مصيرك القانوني..."):
+                with st.spinner("جاري استخراج المواد العقابية..."):
                     charge_resp = client.chat.completions.create(
-                        messages=[{"role": "system", "content": f"أنت خبير قانوني مصري. بناءً على هذا المحضر والمرجع {LAW_BASE}، حدد التهمة الموجهة بدقة، والمواد القانونية المنطبقة، والعقوبة المتوقعة (سجن/غرامة) بوضوح تام وبدون تجميل."},
-                                  {"role": "user", "content": mahdar_input}],
+                        messages=[{"role": "system", "content": f"أنت خبير جنائي مصري. حدد التهمة، المواد العقابية، والعقوبة المتوقعة من هذا المحضر: {mahdar_input} بناءً على {LAW_BASE}"}],
                         model="llama-3.3-70b-versatile"
                     )
                     st.session_state.charge_info = charge_resp.choices[0].message.content
-            else: st.error("حط نص المحضر الأول!")
+            else: st.error("أدخل النص أولاً!")
 
     with col_out:
-        st.subheader("⚖️ التكييف القانوني والعقوبة")
+        st.subheader("⚖️ المصير القانوني (قبل الدفاع)")
         if 'charge_info' in st.session_state:
             st.markdown(f"<div class='charge-box'>{st.session_state.charge_info}</div>", unsafe_allow_html=True)
-            st.warning("⚠️ هذه هي العقوبة لو استسلمت.. انتقل لقسم الشهود ثم المذكرة لننسف هذا الاتهام.")
 
 with tab2:
-    st.subheader("👥 إضافة شهود النفي (بلا حدود)")
-    with st.expander("➕ إضافة شاهد جديد", expanded=True):
-        w_name = st.text_input("اسم الشاهد")
-        w_say = st.text_area("ماذا سيقول لنسف التهمة؟")
-        w_status = st.checkbox("طلب استدعاء جبري من المحكمة")
-        if st.button("✅ حفظ الشاهد"):
+    st.subheader("👥 إدارة شهود النفي")
+    with st.expander("➕ إضافة شاهد جديد للقائمة", expanded=True):
+        w_name = st.text_input("الاسم")
+        w_say = st.text_area("الأقوال التي ستنسف الاتهام")
+        w_status = st.checkbox("طلب استدعاء رسمي")
+        if st.button("✅ تسجيل الشاهد"):
             if w_name and w_say:
-                st.session_state.witnesses.append({"name": w_name, "say": w_say, "status": "استدعاء جبري" if w_status else "حاضر"})
-                st.success(f"تم تسجيل الشاهد: {w_name}")
-            else: st.error("اكمل البيانات!")
+                st.session_state.witnesses.append({"name": w_name, "say": w_say, "status": "رسمي" if w_status else "ودي"})
+                st.success(f"تم تسجيل: {w_name}")
+            else: st.error("بيانات ناقصة!")
 
     for i, wit in enumerate(st.session_state.witnesses):
         st.markdown(f"<div class='witness-box'><b>{i+1}. {wit['name']}</b>: {wit['say']} ({wit['status']})</div>", unsafe_allow_html=True)
-    if st.session_state.witnesses and st.button("🗑️ تفريغ الشهود"): 
-        st.session_state.witnesses = []; st.rerun()
 
 with tab3:
-    st.subheader("📜 صياغة المذكرة الجبارة")
-    if st.button("🔥 استخراج المذكرة بنهج محامي الشيطان"):
-        if not mahdar_input: st.error("فين المحضر؟")
+    st.subheader("📜 المخرجات النهائية للمحامي")
+    if st.button("🚀 توليد المذكرة + خطة إدارة الجلسة"):
+        if not mahdar_input: st.error("أين بيانات القضية؟")
         else:
-            with st.spinner("جاري صياغة مرافعة لا ترحم..."):
-                wit_sum = "\n".join([f"- {w['name']}: {w['say']} ({w['status']})" for w in st.session_state.witnesses])
-                final_prompt = f"""
-                أنت 'محامي الشيطان'. لا تجمل الحقيقة. حلل هذا المحضر: {mahdar_input}
-                بناءً على التهمة والعقوبة التي حددتها سابقاً: {st.session_state.get('charge_info', '')}
-                وباستخدام هؤلاء الشهود: {wit_sum}
-                والمرجع القانوني: {LAW_BASE}
+            with st.spinner("جاري صياغة الاستراتيجية الهجومية..."):
+                wit_sum = "\n".join([f"- {w['name']}: {w['say']}" for w in st.session_state.witnesses])
                 
-                المطلوب:
-                صياغة مذكرة دفاع "جبارة" تهدف للبراءة التامة أو أدنى عقوبة ممكنة.
-                1. اضرب في مقتل بإثبات بطلان الإجراءات (المادة 30 إجراءات، 54 دستور).
-                2. استغل التناقضات (مثل قصة المبالغ المالية والطلقات) لتسفيه الاتهام.
-                3. صغ "طلبات ختامية" بصيغة هجومية تفرض على المحكمة سماع شهودك أو البراءة.
-                يجب أن تكون اللهجة قانونية، شرسة، وحاسمة.
+                final_prompt = f"""
+                أنت 'محامي الشيطان'. حلل المحضر: {mahdar_input} والشهود: {wit_sum}.
+                المطلوب مخرجان منفصلان:
+                1. مذكرة دفاع رسمية: (دفوع بطلان، تناقض أقوال، طلبات ختامية بالبراءة).
+                2. قسم 'توصيات سرية للمحامي': (نصائح للمحامي كيف يستجوب المجني عليه، أسئلة فخ للشهود، ماذا يطلب من القاضي تحديداً في أول جلسة بناءً على الثغرات).
+                استخدم لهجة حاسمة ومواد القانون المصري.
                 """
+                
                 response = client.chat.completions.create(
-                    messages=[{"role": "system", "content": "أنت محامي شيطان جنائي، لا تعرف الرحمة في الدفاع."},
+                    messages=[{"role": "system", "content": "أنت مستشار قانوني جنائي لا يرحم."},
                               {"role": "user", "content": final_prompt}],
                     model="llama-3.3-70b-versatile"
                 )
-                final_memo = response.choices[0].message.content
-                st.markdown("### 📄 المذكرة النهائية:")
-                st.success(final_memo)
-                st.download_button("📥 تحميل مذكرة البراءة", final_memo, file_name="devil_defense.txt")
+                
+                # عرض النتائج
+                result = response.choices[0].message.content
+                st.markdown("### 📄 مذكرة الدفاع وتوصيات الجلسة")
+                st.success(result)
+                st.download_button("📥 تحميل التقرير الكامل", result, file_name="pro_legal_strategy.txt")
