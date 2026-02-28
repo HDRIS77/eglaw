@@ -16,16 +16,18 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # 2. ربط الذكاء الاصطناعي
-model = None
-if "GOOGLE_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    st.warning("⚠️ يرجى ضبط GOOGLE_API_KEY في إعدادات Secrets")
-
-st.title("⚖️ منصة المحامي الذكي - النسخة الاحترافية")
-
-# 3. تقسيم الشاشة
+# كود التحقق من المفتاح وتجنب الـ Error
+try:
+    if "GOOGLE_API_KEY" in st.secrets:
+        api_key = st.secrets["AIzaSyCztL9Vew1ISmm51LduhOzrxZc_yJxBaqg"]
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+    else:
+        st.error("❌ المفتاح غير موجود في Secrets. تأكد من كتابة GOOGLE_API_KEY = 'key'")
+        st.stop()
+except Exception as e:
+    st.error(f"⚠️ مشكلة في الـ API Key: {str(e)}")
+    st.stop()# 3. تقسيم الشاشة
 col1, col2 = st.columns([1, 1])
 
 with col1:
