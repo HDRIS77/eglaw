@@ -1,64 +1,58 @@
 import streamlit as st
-import google.generativeai as genai
 from PIL import Image
+import os
 
-# 1. الثيم الأسود الاحترافي
-st.set_page_config(page_title="منصة المحامي الذكي Pro", layout="wide")
+# 1. الثيم الأسود الاحترافي (Dark Mode)
+st.set_page_config(page_title="منصة المحامي الذكي - المرجع الدستوري", layout="wide")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0b0e14; color: #ffffff; }
-    .stTextArea textarea { background-color: #161b22; color: #00ffcc; border: 1px solid #30363d; font-size: 18px; }
+    .stTextArea textarea { background-color: #161b22; color: #00ffcc; border: 1px solid #30363d; font-size: 18px; border-radius: 10px; }
     .stButton>button { width: 100%; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; border: none; padding: 15px; font-weight: bold; border-radius: 10px; }
+    .law-box { background-color: #1e252e; padding: 20px; border-radius: 10px; border-right: 5px solid #00ffcc; margin-bottom: 20px; }
     h1, h2, h3 { color: #00ffcc !important; text-align: right; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. المفتاح الجديد بتاعك (AIzaSyCS9Tg2...)
-API_KEY = "AIzaSyCS9Tg2paPy96YCjvfywQz3DHn8JM99Qsg"
+st.title("⚖️ منصة المحامي الذكي - الإصدار القانوني الشامل")
 
-# محاولة الاتصال بالموديل المستقر
-try:
-    genai.configure(api_key=API_KEY)
-    # جربنا نحدد الموديل بدون كلمة models/ وبدون تحديد beta لتجنب خطأ 404
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except Exception as e:
-    st.error(f"عطل في التهيئة: {str(e)}")
+# 2. قسم المرجع القانوني (تحميل ملف القانون)
+with st.sidebar:
+    st.header("📚 المكتبة القانونية")
+    if os.path.exists("law_reference.txt"):
+        with open("law_reference.txt", "r", encoding="utf-8") as f:
+            law_content = f.read()
+        st.success("✅ تم تحميل الدستور المصري كمرجع")
+        with st.expander("استعراض نصوص المواد"):
+            st.write(law_content)
+    else:
+        st.warning("⚠️ لم يتم العثور على ملف law_reference.txt")
 
-st.title("⚖️ منصة المحامي الذكي - النسخة الاحترافية")
-
+# 3. واجهة العمل الرئيسية
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.subheader("📁 ارفع صورة المحضر")
-    uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+    st.subheader("📁 رفع محضر القضية")
+    uploaded_file = st.file_uploader("اسحب صورة المحضر هنا", type=["jpg", "png", "jpeg"])
     
     if uploaded_file:
         img = Image.open(uploaded_file)
-        st.image(img, use_container_width=True)
+        st.image(img, caption="المستند المرفوع", use_container_width=True)
         
-        if st.button("🔍 قراءة وتحويل النص"):
-            with st.spinner("جاري محاولة القراءة..."):
-                try:
-                    # طلب القراءة
-                    response = model.generate_content(["اقرأ هذا المحضر المصري بدقة وحوله لنص عربي.", img])
-                    st.session_state['processed_text'] = response.text
-                except Exception as e:
-                    # محاولة أخيرة بموديل بديل لو الـ flash فيه مشكلة 404
-                    try:
-                        model_alt = genai.GenerativeModel('gemini-pro-vision')
-                        response = model_alt.generate_content(["اقرأ النص في الصورة.", img])
-                        st.session_state['processed_text'] = response.text
-                    except:
-                        st.error("جوجل تواجه مشكلة في التعرف على الموديل. يرجى عمل Reboot للموقع.")
+        # الزرار ده دلوقتي كشكل (هيكل) عشان الأخطاء متطلعش
+        if st.button("🔍 قراءة وتحويل النص (قيد التفعيل)"):
+            st.info("سيتم تفعيل الربط مع الذكاء الاصطناعي في الخطوة الأخيرة.")
 
 with col2:
-    if 'processed_text' in st.session_state:
-        st.subheader("📝 النص المستخرج (عدل عليه هنا)")
-        # المربع اللي تقدر تمسح وتعدل فيه
-        user_text = st.text_area("", value=st.session_state['processed_text'], height=450)
-        
-        if st.button("⚖️ استخراج ثغرات البطلان"):
-            with st.spinner("جاري التحليل..."):
-                analysis = model.generate_content(f"بناءً على نص المحضر: {user_text}، استخرج ثغرات البطلان القانونية.")
-                st.success(analysis.text)
+    st.subheader("📝 مربع التعديل والتحليل")
+    # مربع التعديل اللي طلبته
+    user_text = st.text_area("النص المستخرج سيظهر هنا، ويمكنك تعديله يدوياً:", height=400, placeholder="بانتظار رفع المحضر وقراءته...")
+    
+    st.markdown("---")
+    if st.button("⚖️ استخراج ثغرات البطلان بناءً على الدستور"):
+        st.info("جاري تجهيز محرك التحليل القانوني...")
+
+# 4. قسم "تقرير الثغرات" (هيكل)
+st.markdown("### 📋 التقرير القانوني المتوقع")
+st.info("هنا سيقوم النظام بمطابقة نص المحضر مع مواد الدستور في المكتبة لاستخراج الدفوع القانونية.")
