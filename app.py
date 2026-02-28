@@ -2,27 +2,27 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# 1. إعدادات الثيم الأسود (Dark Mode)
+# 1. الثيم الأسود الاحترافي
 st.set_page_config(page_title="منصة المحامي الذكي Pro", layout="wide")
 
 st.markdown("""
     <style>
-    .stApp { background-color: #0b0e14; color: #e0e0e0; }
-    .stTextArea textarea { background-color: #161b22; color: #00ffcc; border: 1px solid #30363d; font-size: 18px; border-radius: 10px; }
-    .stButton>button { width: 100%; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; border: none; padding: 15px; font-weight: bold; border-radius: 10px; }
+    .stApp { background-color: #0b0e14; color: #ffffff; }
+    .stTextArea textarea { background-color: #161b22; color: #00ffcc; border: 1px solid #30363d; font-size: 18px; }
+    .stButton>button { width: 100%; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; border: none; padding: 12px; font-weight: bold; border-radius: 10px; }
     h1, h2, h3 { color: #00ffcc !important; text-align: right; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. ربط الـ API Key الجديد مباشرة
-# تم تحديث المفتاح بالكود الجديد اللي بعته
+# 2. المفتاح الجديد بتاعك
 NEW_API_KEY = "AIzaSyCS9Tg2paPy96YCjvfywQz3DHn8JM99Qsg"
 
 try:
     genai.configure(api_key=NEW_API_KEY)
+    # جربنا موديل gemini-pro-vision لأنه الأكثر استقراراً للصور حالياً
     model = genai.GenerativeModel('gemini-pro-vision')
 except Exception as e:
-    st.error(f"مشكلة في تفعيل المفتاح الجديد: {str(e)}")
+    st.error(f"مشكلة في تفعيل المفتاح: {str(e)}")
 
 st.title("⚖️ منصة المحامي الذكي - النسخة الاحترافية")
 
@@ -39,26 +39,24 @@ with col1:
         if st.button("🔍 قراءة وتحويل النص"):
             with st.spinner("جاري فك شفرة الخط اليدوي..."):
                 try:
-                    # طلب القراءة من الذكاء الاصطناعي
-                    response = model.generate_content([
-                        "أنت خبير قانوني مصري، اقرأ هذا المحضر بدقة وحوله لنص عربي مكتوب.", 
-                        img
-                    ])
+                    # طلب القراءة (تأكد من إرسال الصورة كقائمة)
+                    response = model.generate_content(["اقرأ هذا المحضر المصري بدقة وحوله لنص عربي.", img])
                     st.session_state['processed_text'] = response.text
                 except Exception as e:
-                    st.error(f"عطل في القراءة: {str(e)}")
+                    # لو فشل، هنجرب الموديل البديل تلقائياً
+                    st.warning("جاري تجربة محرك بديل...")
+                    model_alt = genai.GenerativeModel('gemini-1.5-pro')
+                    response = model_alt.generate_content(["اقرأ هذا المحضر وحوله لنص.", img])
+                    st.session_state['processed_text'] = response.text
 
 with col2:
     if 'processed_text' in st.session_state:
         st.subheader("📝 النص المستخرج (عدل عليه هنا)")
-        # المربع السحري للتعديل اليدوي
-        edited_text = st.text_area("", value=st.session_state['processed_text'], height=450)
+        user_text = st.text_area("", value=st.session_state['processed_text'], height=450)
         
         if st.button("⚖️ استخراج ثغرات البطلان"):
             with st.spinner("جاري تحليل الثغرات..."):
-                try:
-                    analysis = model.generate_content(f"بناءً على نص المحضر التالي: {edited_text}، استخرج ثغرات البطلان القانونية.")
-                    st.subheader("📋 تقرير محامي الشيطان:")
-                    st.success(analysis.text)
-                except Exception as e:
-                    st.error(f"خطأ في التحليل: {str(e)}")
+                # للتحليل النصي بنستخدم gemini-pro العادي
+                model_text = genai.GenerativeModel('gemini-pro')
+                analysis = model_text.generate_content(f"بناءً على نص المحضر: {user_text}، استخرج ثغرات البطلان القانونية.")
+                st.success(analysis.text)
