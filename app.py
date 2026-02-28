@@ -16,7 +16,7 @@ st.markdown("""
 
 # 2. ربط الـ API Key بطريقة آمنة
 if "GOOGLE_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY = "AIzaSyCztL9Vewl1Smm51LduhOzrxZc_yJxBaqg""])
     model = genai.GenerativeModel('gemini-1.5-flash')
 else:
     st.error("⚠️ خطأ: الـ API Key غير مضبوط في الـ Secrets")
