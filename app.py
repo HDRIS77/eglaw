@@ -20,7 +20,7 @@ NEW_API_KEY = "AIzaSyCS9Tg2paPy96YCjvfywQz3DHn8JM99Qsg"
 
 try:
     genai.configure(api_key=NEW_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-pro-vision')
 except Exception as e:
     st.error(f"مشكلة في تفعيل المفتاح الجديد: {str(e)}")
 
