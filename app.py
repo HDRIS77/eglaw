@@ -2,61 +2,73 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# 1. الثيم الأسود الاحترافي (Dark Mode)
-st.set_page_config(page_title="منصة المحامي الذكي Pro", layout="wide")
+# 1. إعدادات الثيم الأسود الاحترافي (Dark Mode)
+st.set_page_config(page_title="منصة المحامي الذكي Pro", layout="wide", page_icon="⚖️")
 
 st.markdown("""
     <style>
     .stApp { background-color: #0b0e14; color: #e0e0e0; }
-    .stTextArea textarea { background-color: #161b22; color: #00ffcc; border: 1px solid #30363d; font-size: 18px; }
-    .stButton>button { background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; border-radius: 8px; border: none; padding: 15px; font-weight: bold; }
-    h1, h2, h3 { color: #00ffcc !important; text-align: right; }
+    .stTextArea textarea { background-color: #161b22; color: #00ffcc; border: 1px solid #30363d; font-size: 18px; border-radius: 10px; }
+    .stButton>button { width: 100%; background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%); color: white; border: none; padding: 15px; font-weight: bold; border-radius: 10px; cursor: pointer; }
+    .stButton>button:hover { background: linear-gradient(90deg, #3a7bd5 0%, #00d2ff 100%); }
+    h1, h2, h3 { color: #00ffcc !important; text-align: right; font-family: 'Segoe UI', sans-serif; }
+    .stImage { border-radius: 15px; border: 2px solid #30363d; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. ربط الـ API Key بطريقة آمنة
-if "GOOGLE_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["AIzaSyCztL9Vewl1Smm51LduhOzrxZc_yJxBaqg"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    st.error("⚠️ خطأ: الـ API Key غير مضبوط في الـ Secrets")
-    st.stop()
+# 2. حطينا الـ API Key مباشرة في الكود عشان نحل مشكلة الـ Secrets
+MY_API_KEY = "AIzaSyCztL9Vewl1Smm51LduhOzrxZc_yJxBaqg"
+genai.configure(api_key=MY_API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.title("⚖️ منصة المحامي الذكي - إصدار المحترفين")
+st.title("⚖️ منصة المحامي الذكي - النسخة الاحترافية")
+st.markdown("---")
 
-# 3. تقسيم واجهة الموقع (رفع الملفات / النتائج)
+# 3. تقسيم واجهة العمل
 col1, col2 = st.columns([1, 1])
 
 with col1:
     st.subheader("📁 رفع محضر القضية")
-    uploaded_file = st.file_uploader("اسحب صورة المحضر هنا", type=["jpg", "png", "jpeg"])
+    uploaded_file = st.file_uploader("اسحب صورة المحضر هنا (JPG/PNG)", type=["jpg", "png", "jpeg"])
     
     if uploaded_file:
         img = Image.open(uploaded_file)
         st.image(img, caption="المستند الذي قمت برفعه", use_container_width=True)
         
         if st.button("🔍 قراءة وتحويل خط اليد"):
-            with st.spinner("جاري فك شفرة الخط..."):
+            with st.spinner("جاري فك شفرة الخط باستخدام AI..."):
                 try:
-                    # طلب قراءة الصورة من الذكاء الاصطناعي
-                    response = model.generate_content(["اقرأ هذا المحضر المصري وحوله لنص مكتوب بدقة.", img])
-                    st.session_state['processed_text'] = response.text
+                    # طلب قراءة الصورة وتحويلها لنص
+                    response = model.generate_content([
+                        "أنت خبير في قراءة محاضر الشرطة المصرية. قم بتحويل الخط اليدوي في هذه الصورة لنص عربي مكتوب بدقة عالية جداً.", 
+                        img
+                    ])
+                    st.session_state['text_out'] = response.text
                 except Exception as e:
-                    st.error(f"حدث خطأ أثناء الاتصال: {str(e)}")
+                    st.error(f"حدث خطأ في الاتصال: {str(e)}")
 
-# 4. مربع التعديل والتحليل (العمود الثاني)
+# 4. مربع التعديل والتحليل القانوني (العمود الثاني)
 with col2:
-    if 'processed_text' in st.session_state:
-        st.subheader("📝 النص المستخرج (عدل عليه هنا)")
-        # المربع ده هو اللي تقدر تعدل فيه النص يدوياً قبل التحليل
-        user_text = st.text_area("راجع النص وقم بتصحيح أي كلمات:", value=st.session_state['processed_text'], height=450)
+    if 'text_out' in st.session_state:
+        st.subheader("📝 النص المستخرج (يمكنك التعديل عليه)")
+        # المربع السحري اللي تقدر تمسح وتعدل فيه براحتك
+        user_text = st.text_area("راجع النص هنا وعدل أي كلمات غير واضحة:", value=st.session_state['text_out'], height=450)
         
         st.markdown("---")
         if st.button("⚖️ استخراج ثغرات بطلان المحضر"):
-            with st.spinner("جاري تحليل الثغرات بناءً على القانون المصري..."):
+            with st.spinner("جاري تحليل الثغرات ومطابقتها بالقانون المصري..."):
                 try:
-                    analysis = model.generate_content(f"بناءً على نص هذا المحضر: {user_text}، استخرج كل ثغرات البطلان القانونية الممكنة طبقاً لقانون الإجراءات الجنائية المصري.")
+                    analysis_prompt = f"""
+                    بصفتك محامي جنائي خبير (محامي الشيطان)، حلل النص التالي المستخرج من محضر شرطة:
+                    {user_text}
+                    
+                    المطلوب:
+                    1. استخراج ثغرات البطلان (بطلان قبض، تفتيش، تناقض، إلخ).
+                    2. ذكر مواد قانون الإجراءات الجنائية المصري ذات الصلة.
+                    3. تقديم نصيحة للمحامي لكيفية استغلال هذه الثغرات في المرافعة.
+                    """
+                    analysis = model.generate_content(analysis_prompt)
                     st.subheader("📋 تقرير محامي الشيطان:")
                     st.success(analysis.text)
                 except Exception as e:
-                    st.error(f"خطأ في التحليل: {str(e)}")
+                    st.error(f"خطأ أثناء التحليل: {str(e)}")
